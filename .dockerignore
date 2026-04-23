@@ -1,0 +1,15 @@
+.git
+.github
+.idea
+.vscode
+.DS_Store
+.env
+node_modules
+vendor
+skillhub-back/vendor
+skillhub-front/node_modules
+skillhub-back/storage/logs
+skillhub-back/storage/framework/cache
+skillhub-back/storage/framework/sessions
+skillhub-back/storage/framework/views
+skillhub-front/dist

@@ -1,0 +1,417 @@
+openapi: 3.0.3
+info:
+  title: API SkillHub
+  version: 1.0.0
+  description: Documentation de l'API du projet SkillHub (React + Laravel)
+servers:
+  - url: http://localhost:8000
+paths:
+
+ 
+  # AUTH
+  
+
+  /api/login:
+    post:
+      summary: Connexion utilisateur
+      description: Authentifie un utilisateur avec email et mot de passe. Retourne un token JWT.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              email: "formateur@test.com"
+              password: "123456"
+      responses:
+        '200':
+          description: Connexion réussie — token JWT retourné
+          content:
+            application/json:
+              example:
+                access_token: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+                token_type: "bearer"
+                expires_in: 3600
+                user:
+                  id: 1
+                  nom: "Dupont"
+                  prenom: "Jean"
+                  email: "formateur@test.com"
+                  role: "FORMATEUR"
+        '401':
+          description: Email ou mot de passe incorrect
+          content:
+            application/json:
+              example:
+                error: "Email ou mot de passe incorrect"
+        '500':
+          description: Erreur serveur
+
+  /api/register:
+    post:
+      summary: Inscription utilisateur
+      description: Crée un nouveau compte utilisateur. Le rôle doit être APPRENANT, FORMATEUR ou ADMINISTRATEUR.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              nom: "Dupont"
+              prenom: "Jean"
+              email: "formateur@test.com"
+              password: "123456"
+              role: "FORMATEUR"
+      responses:
+        '201':
+          description: Inscription réussie — compte créé et token retourné
+          content:
+            application/json:
+              example:
+                access_token: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+                token_type: "bearer"
+                user:
+                  id: 3
+                  nom: "Dupont"
+                  prenom: "Jean"
+                  email: "formateur@test.com"
+                  role: "FORMATEUR"
+        '422':
+          description: Erreur de validation — champs manquants ou email déjà utilisé
+          content:
+            application/json:
+              example:
+                message: "The email has already been taken."
+                errors:
+                  email:
+                    - "The email has already been taken."
+        '500':
+          description: Erreur serveur
+
+  /api/me:
+    get:
+      summary: Profil de l'utilisateur connecté
+      description: Retourne les informations de l'utilisateur authentifié via son token JWT.
+      responses:
+        '200':
+          description: Profil retourné avec succès
+          content:
+            application/json:
+              example:
+                id: 1
+                nom: "Dupont"
+                prenom: "Jean"
+                email: "formateur@test.com"
+                role: "FORMATEUR"
+                niveauEtude: null
+                certification: null
+                created_at: "2026-03-05T09:43:20.000000Z"
+                updated_at: "2026-03-05T09:43:20.000000Z"
+        '401':
+          description: Token absent ou expiré
+          content:
+            application/json:
+              example:
+                error: "Token absent"
+        '403':
+          description: Token invalide
+          content:
+            application/json:
+              example:
+                error: "Token invalide"
+        '500':
+          description: Erreur serveur
+
+  /api/logout:
+    post:
+      summary: Déconnexion
+      description: Invalide le token JWT de l'utilisateur connecté.
+      responses:
+        '200':
+          description: Déconnexion réussie
+          content:
+            application/json:
+              example:
+                message: "Déconnexion réussie"
+        '401':
+          description: Token absent ou expiré
+          content:
+            application/json:
+              example:
+                error: "Token expiré, veuillez vous reconnecter"
+        '403':
+          description: Token invalide
+          content:
+            application/json:
+              example:
+                error: "Token invalide"
+        '500':
+          description: Erreur serveur
+
+  
+  # FORMATIONS
+  
+
+  /api/formations:
+    get:
+      summary: Récupérer mes formations
+      description: Retourne uniquement les formations appartenant au formateur connecté.
+      responses:
+        '200':
+          description: Liste des formations du formateur connecté
+          content:
+            application/json:
+              example:
+                - id: 1
+                  titre: "Introduction à React"
+                  description: "Découvrez les bases de React."
+                  duree: 4
+                  prix: 89.99
+                  niveauRequis: "Débutant"
+                  statut: "publié"
+                  vues: 245
+                  idUtilisateur: 1
+                  idCategorie: 1
+                  categorie:
+                    id: 1
+                    nomCategorie: "Développement Web"
+                  created_at: "2026-03-05T09:43:28.000000Z"
+                - id: 2
+                  titre: "JavaScript avancé"
+                  description: "Concepts avancés JS."
+                  duree: 6
+                  prix: 110.00
+                  niveauRequis: "Avancé"
+                  statut: "brouillon"
+                  vues: 0
+                  idUtilisateur: 1
+                  idCategorie: 1
+                  categorie:
+                    id: 1
+                    nomCategorie: "Développement Web"
+                  created_at: "2026-03-05T09:43:28.000000Z"
+        '401':
+          description: Token absent ou expiré
+          content:
+            application/json:
+              example:
+                error: "Token absent"
+        '403':
+          description: Token invalide
+          content:
+            application/json:
+              example:
+                error: "Token invalide"
+        '500':
+          description: Erreur serveur
+
+    post:
+      summary: Créer une formation
+      description: |
+        Crée une nouvelle formation pour le formateur connecté.
+        L'idUtilisateur est récupéré automatiquement via le token JWT — ne pas l'envoyer depuis le front.
+        Le statut est brouillon par défaut si non précisé.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              titre: "Introduction à React"
+              description: "Découvrez les bases de React et créez votre première application."
+              duree: 4
+              prix: 89.99
+              niveauRequis: "Débutant"
+              statut: "publié"
+              idCategorie: 1
+      responses:
+        '201':
+          description: Formation créée avec succès
+          content:
+            application/json:
+              example:
+                id: 4
+                titre: "Introduction à React"
+                description: "Découvrez les bases de React et créez votre première application."
+                duree: 4
+                prix: 89.99
+                niveauRequis: "Débutant"
+                statut: "publié"
+                vues: 0
+                idUtilisateur: 1
+                idCategorie: 1
+                created_at: "2026-03-06T10:00:00.000000Z"
+                updated_at: "2026-03-06T10:00:00.000000Z"
+        '401':
+          description: Token absent ou expiré
+          content:
+            application/json:
+              example:
+                error: "Token absent"
+        '403':
+          description: Token invalide
+          content:
+            application/json:
+              example:
+                error: "Token invalide"
+        '422':
+          description: Erreur de validation — titre manquant ou idCategorie invalide
+          content:
+            application/json:
+              example:
+                message: "The titre field is required."
+                errors:
+                  titre:
+                    - "The titre field is required."
+                  idCategorie:
+                    - "The selected id categorie is invalid."
+        '500':
+          description: Erreur serveur
+
+  /api/formations/{id}:
+    put:
+      summary: Modifier une formation
+      description: Met à jour une formation appartenant au formateur connecté. Un formateur ne peut modifier que ses propres formations.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID de la formation à modifier
+          schema:
+            type: integer
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              titre: "Introduction à React - Mise à jour"
+              prix: 99.99
+              statut: "publié"
+      responses:
+        '200':
+          description: Formation modifiée avec succès
+          content:
+            application/json:
+              example:
+                id: 1
+                titre: "Introduction à React - Mise à jour"
+                description: "Découvrez les bases de React."
+                duree: 4
+                prix: 99.99
+                niveauRequis: "Débutant"
+                statut: "publié"
+                vues: 245
+                idUtilisateur: 1
+                idCategorie: 1
+                categorie:
+                  id: 1
+                  nomCategorie: "Développement Web"
+                created_at: "2026-03-05T09:43:28.000000Z"
+                updated_at: "2026-03-06T11:00:00.000000Z"
+        '401':
+          description: Token absent ou expiré
+          content:
+            application/json:
+              example:
+                error: "Token absent"
+        '403':
+          description: Token invalide
+          content:
+            application/json:
+              example:
+                error: "Token invalide"
+        '404':
+          description: Formation non trouvée ou n'appartient pas au formateur connecté
+          content:
+            application/json:
+              example:
+                error: "Formation non trouvée"
+        '422':
+          description: Erreur de validation
+          content:
+            application/json:
+              example:
+                message: "The titre field is required."
+                errors:
+                  titre:
+                    - "The titre field is required."
+        '500':
+          description: Erreur serveur
+
+    delete:
+      summary: Supprimer une formation
+      description: Supprime définitivement une formation appartenant au formateur connecté.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID de la formation à supprimer
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: Formation supprimée avec succès
+          content:
+            application/json:
+              example:
+                message: "Formation supprimée"
+        '401':
+          description: Token absent ou expiré
+          content:
+            application/json:
+              example:
+                error: "Token absent"
+        '403':
+          description: Token invalide
+          content:
+            application/json:
+              example:
+                error: "Token invalide"
+        '404':
+          description: Formation non trouvée ou n'appartient pas au formateur connecté
+          content:
+            application/json:
+              example:
+                error: "Formation non trouvée"
+        '500':
+          description: Erreur serveur
+
+ 
+  # CATEGORIES
+ 
+
+  /api/categories:
+    get:
+      summary: Récupérer toutes les catégories
+      description: Retourne la liste de toutes les catégories de formations disponibles.
+      responses:
+        '200':
+          description: Liste des catégories retournée avec succès
+          content:
+            application/json:
+              example:
+                - id: 1
+                  nomCategorie: "Développement Web"
+                  created_at: "2026-02-05T07:07:15.000000Z"
+                  updated_at: "2026-02-05T07:07:15.000000Z"
+                - id: 2
+                  nomCategorie: "Design"
+                  created_at: "2026-02-05T07:07:15.000000Z"
+                  updated_at: "2026-02-05T07:07:15.000000Z"
+                - id: 3
+                  nomCategorie: "Marketing"
+                  created_at: "2026-02-05T07:07:15.000000Z"
+                  updated_at: "2026-02-05T07:07:15.000000Z"
+        '401':
+          description: Token absent ou expiré
+          content:
+            application/json:
+              example:
+                error: "Token absent"
+        '403':
+          description: Token invalide
+          content:
+            application/json:
+              example:
+                error: "Token invalide"
+        '500':
+          description: Erreur serveur

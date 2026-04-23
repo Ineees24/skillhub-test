@@ -1,0 +1,22 @@
+server:
+  port: 8081
+
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/skillhub_auth}
+    username: ${DB_USER:root}
+    password: ${DB_PASSWORD:}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+skillhub:
+  auth:
+    app-master-key: ${APP_MASTER_KEY:}
+    timestamp-tolerance-seconds: ${SSO_TIMESTAMP_TOLERANCE:60}
+    nonce-ttl-seconds: ${SSO_NONCE_TTL:120}
+    token-ttl-seconds: ${SSO_TOKEN_TTL:900}

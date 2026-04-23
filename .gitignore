@@ -1,0 +1,17 @@
+.env
+.DS_Store
+.idea/
+.vscode/
+*.log
+
+skillhub-back/vendor/
+skillhub-back/node_modules/
+skillhub-back/public/build/
+skillhub-back/storage/logs/
+skillhub-back/storage/framework/cache/
+skillhub-back/storage/framework/sessions/
+skillhub-back/storage/framework/views/
+
+skillhub-front/node_modules/
+skillhub-front/dist/
+skillhub-front/.vite/

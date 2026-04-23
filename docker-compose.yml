@@ -1,0 +1,47 @@
+services:
+  backend:
+    build:
+      context: ./skillhub-back
+      dockerfile: Dockerfile
+    container_name: skillhub-backend
+    env_file:
+      - ./.env
+    environment:
+      AUTH_SERVICE_URL: http://auth-service:8081
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./skillhub-back:/var/www/html
+      - backend-vendor:/var/www/html/vendor
+    depends_on:
+      - auth-service
+
+  frontend:
+    build:
+      context: ./skillhub-front
+      dockerfile: Dockerfile
+    container_name: skillhub-frontend
+    env_file:
+      - ./.env
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./skillhub-front:/app
+      - frontend-node-modules:/app/node_modules
+
+  auth-service:
+    build:
+      context: ./auth-service-spring
+      dockerfile: Dockerfile
+    container_name: skillhub-auth-service
+    environment:
+      APP_MASTER_KEY: ${APP_MASTER_KEY:-dev_master_key_change_me}
+      DB_URL: ${AUTH_DB_URL:-jdbc:h2:mem:authdb;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE}
+      DB_USER: ${AUTH_DB_USER:-sa}
+      DB_PASSWORD: ${AUTH_DB_PASSWORD:-}
+    ports:
+      - "8081:8081"
+
+volumes:
+  backend-vendor:
+  frontend-node-modules:
