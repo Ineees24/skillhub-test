@@ -42,6 +42,10 @@ jobs:
         working-directory: skillhub-front
         run: npm run coverage
 
+      - name: Normalize frontend lcov paths for Sonar
+        run: |
+          sed -i 's|^SF:src/|SF:skillhub-front/src/|g' skillhub-front/coverage/lcov.info
+
       - name: Set up PHP with PCOV
         uses: shivammathur/setup-php@v2
         with:
@@ -65,9 +69,9 @@ jobs:
         run: composer coverage
 
       - name: Check coverage files exist
-  run: |
-    ls -la skillhub-front/coverage/lcov.info
-    ls -la skillhub-back/coverage/clover.xml  
+        run: |
+          ls -la skillhub-front/coverage/lcov.info
+          ls -la skillhub-back/coverage/clover.xml
 
       - name: Run Sonar scanner
         uses: SonarSource/sonarqube-scan-action@v2
