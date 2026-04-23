@@ -64,6 +64,11 @@ jobs:
         working-directory: skillhub-back
         run: composer coverage
 
+      - name: Check coverage files exist
+  run: |
+    ls -la skillhub-front/coverage/lcov.info
+    ls -la skillhub-back/coverage/clover.xml  
+
       - name: Run Sonar scanner
         uses: SonarSource/sonarqube-scan-action@v2
         env:
