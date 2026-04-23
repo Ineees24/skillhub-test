@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  sonar:
+    name: Sonar analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: skillhub-front/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: skillhub-front
+        run: npm ci
+
+      - name: Generate frontend coverage
+        working-directory: skillhub-front
+        run: npm run coverage
+
+      - name: Set up PHP with PCOV
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: mbstring, pdo, sqlite, mongodb-2.2.0
+          coverage: pcov
+
+      - name: Prepare backend test environment
+        working-directory: skillhub-back
+        run: |
+          [ -f .env ] || cp .env.example .env
+          mkdir -p database
+          touch database/database.sqlite
+
+      - name: Install backend dependencies
+        working-directory: skillhub-back
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Generate backend coverage
+        working-directory: skillhub-back
+        run: composer coverage
+
+      - name: Run Sonar scanner
+        uses: SonarSource/sonarqube-scan-action@v2
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: https://sonarcloud.io
