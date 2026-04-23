@@ -49,7 +49,7 @@ jobs:
       - name: Set up PHP with PCOV
         uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.4"
+          php-version: "8.2"
           extensions: mbstring, pdo, sqlite, mongodb-2.2.0
           coverage: pcov
 
@@ -74,6 +74,7 @@ jobs:
           ls -la skillhub-back/coverage/clover.xml
 
       - name: Run Sonar scanner
+        if: always()
         uses: SonarSource/sonarqube-scan-action@v2
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
