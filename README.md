@@ -123,7 +123,7 @@ Le projet suit une organisation Git stricte :
 - feature/nom-feature : développement de fonctionnalités
 - hotfix/nom-fix : corrections urgentes
 
-Voir CONTRIBUTING.md pour les règles complètes.
+Voir CONTRIBUTING.md pour les règles complètes..
 
 
 
