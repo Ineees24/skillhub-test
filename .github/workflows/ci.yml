@@ -27,29 +27,10 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: skillhub-front/package-lock.json
-
-      - name: Install frontend dependencies
-        working-directory: skillhub-front
-        run: npm ci
-
-      - name: Generate frontend coverage
-        working-directory: skillhub-front
-        run: npm run coverage
-
-      - name: Normalize frontend lcov paths for Sonar
-        run: |
-          sed -i 's|^SF:src/|SF:skillhub-front/src/|g' skillhub-front/coverage/lcov.info
-
       - name: Set up PHP with PCOV
         uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.2"
+          php-version: "8.4"
           extensions: mbstring, pdo, sqlite, mongodb-2.2.0
           coverage: pcov
 
@@ -66,15 +47,12 @@ jobs:
 
       - name: Generate backend coverage
         working-directory: skillhub-back
-        run: php artisan test --testsuite=Unit --coverage-clover=coverage/clover.xml
+        run: composer coverage
 
-      - name: Check coverage files exist
-        run: |
-          ls -la skillhub-front/coverage/lcov.info
-          ls -la skillhub-back/coverage/clover.xml
+      - name: Check coverage file exists
+        run: ls -la skillhub-back/coverage/clover.xml
 
       - name: Run Sonar scanner
-        if: always()
         uses: SonarSource/sonarqube-scan-action@v2
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
