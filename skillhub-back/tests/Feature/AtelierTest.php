@@ -8,6 +8,7 @@ use App\Models\Formation;
 use App\Models\CategorieFormation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Facades\DB;
 
 class AtelierTest extends TestCase
 {
@@ -166,4 +167,42 @@ class AtelierTest extends TestCase
              ->assertStatus(400)
              ->assertJson(['success' => false]);
     }
+
+    public function test_apprenant_ne_peut_pas_sinscrire_a_plus_de_5_formations()
+{
+    $user  = User::factory()->create(['role' => 'APPRENANT']);
+    $token = auth('api')->login($user);
+
+    // Mocker AuthServiceClient pour éviter l'appel à auth-service
+    $mockAuthClient = \Mockery::mock(\App\Services\AuthServiceClient::class);
+    $mockResponse = new \Illuminate\Http\Client\Response(
+        new \GuzzleHttp\Psr7\Response(200, [], json_encode([
+            'email' => $user->email,
+            'role'  => $user->role,
+        ]))
+    );
+    $mockAuthClient->shouldReceive('me')->andReturn($mockResponse);
+    $this->app->instance(\App\Services\AuthServiceClient::class, $mockAuthClient);
+
+    for ($i = 0; $i < 5; $i++) {
+        $formation = Formation::factory()->create();
+        DB::table('inscription')->insert([
+            'idUtilisateur'   => $user->id,
+            'idFormation'     => $formation->id,
+            'dateInscription' => now()->toDateString(),
+            'statut'          => 'en-cours',
+            'created_at'      => now(),
+            'updated_at'      => now(),
+        ]);
+    }
+
+    $nouvelleFormation = Formation::factory()->create();
+
+    $this->withHeader('Authorization', "Bearer $token")
+         ->postJson("/api/ateliers/{$nouvelleFormation->id}/inscription")
+         ->assertStatus(400)
+         ->assertJsonFragment([
+             'message' => 'Vous avez atteint la limite de 5 formations simultanées. Veuillez terminer ou vous désinscrire d\'une formation avant de vous inscrire à une nouvelle.',
+         ]);
+}
 }
