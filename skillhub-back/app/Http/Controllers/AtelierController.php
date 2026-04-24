@@ -162,42 +162,53 @@ class AtelierController extends Controller
     
     public function inscrire(int $id)
     {
-        $user = auth('api')->user();
+    $user = auth('api')->user();
 
-        if (! $user || strtoupper((string) $user->role) !== 'APPRENANT') {
-            return response()->json(['message' => 'Seuls les apprenants peuvent s inscrire.'], 403);
-        }
+    if (! $user || strtoupper((string) $user->role) !== 'APPRENANT') {
+        return response()->json(['message' => 'Seuls les apprenants peuvent s inscrire.'], 403);
+    }
 
-        $inscriptionContext = $this->resolveInscriptionContext($id);
-        if ($inscriptionContext['status'] !== null) {
-            return response()->json(['message' => $inscriptionContext['message']], $inscriptionContext['status']);
-        }
+    $inscriptionContext = $this->resolveInscriptionContext($id);
+    if ($inscriptionContext['status'] !== null) {
+        return response()->json(['message' => $inscriptionContext['message']], $inscriptionContext['status']);
+    }
 
-        /** @var Formation $formation */
-        $formation = $inscriptionContext['formation'];
+    /** @var Formation $formation */
+    $formation = $inscriptionContext['formation'];
 
-        $already = DB::table('inscription')
-            ->where('idUtilisateur', $user->id)
-            ->where('idFormation', $formation->id)
-            ->exists();
+    // ── Vérification limite de 5 inscriptions actives ──
+    $nombreInscriptions = DB::table('inscription')
+        ->where('idUtilisateur', $user->id)
+        ->where('statut', 'en-cours')
+        ->count();
 
-        $status = 200;
-        $message = 'Vous etes deja inscrit a cette formation.';
+    if ($nombreInscriptions >= 5) {
+        return response()->json([
+            'message' => 'Vous avez atteint la limite de 5 formations simultanées. Veuillez terminer ou vous désinscrire d\'une formation avant de vous inscrire à une nouvelle.',
+        ], 400);
+    }
 
-        if (! $already) {
-            DB::table('inscription')->insert($this->buildInscriptionPayload((int) $user->id, (int) $formation->id));
+    $already = DB::table('inscription')
+        ->where('idUtilisateur', $user->id)
+        ->where('idFormation', $formation->id)
+        ->exists();
 
-            // MongoDB — historisation
-            $this->activityLog->logEvent('course_enrollment', [
-                'user_id' => $user->id,
-                'course_id' => $formation->id,
-            ]);
+    $status = 200;
+    $message = 'Vous etes deja inscrit a cette formation.';
 
-            $status = 201;
-            $message = 'Inscription effectuee avec succes.';
-        }
+    if (! $already) {
+        DB::table('inscription')->insert($this->buildInscriptionPayload((int) $user->id, (int) $formation->id));
 
-        return response()->json(['message' => $message], $status);
+        $this->activityLog->logEvent('course_enrollment', [
+            'user_id' => $user->id,
+            'course_id' => $formation->id,
+        ]);
+
+        $status = 201;
+        $message = 'Inscription effectuee avec succes.';
+    }
+
+    return response()->json(['message' => $message], $status);
     }
 
     
