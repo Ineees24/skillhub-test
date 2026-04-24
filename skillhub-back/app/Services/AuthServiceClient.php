@@ -16,12 +16,18 @@ class AuthServiceClient
         $envUrl = getenv('AUTH_SERVICE_URL') ?: null;
         $cfgUrl = config('services.auth_service.url');
         $baseUrl = (string) ($envUrl ?: $cfgUrl ?: $fallback);
+        $inDocker = file_exists('/.dockerenv');
+
+        // If running Laravel locally (no Docker), "auth-service" hostname is unreachable.
+        if (!$inDocker && str_contains($baseUrl, 'auth-service')) {
+            $baseUrl = 'http://localhost:8081';
+        }
 
         Log::info('AuthServiceClient baseUrl', [
             'baseUrl' => $baseUrl,
             'env' => $envUrl,
             'config' => $cfgUrl,
-            'inDocker' => file_exists('/.dockerenv'),
+            'inDocker' => $inDocker,
         ]);
 
         return Http::baseUrl(rtrim($baseUrl, '/'))
