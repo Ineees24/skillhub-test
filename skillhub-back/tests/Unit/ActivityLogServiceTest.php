@@ -22,7 +22,7 @@ class ActivityLogServiceTest extends TestCase
 
     public function test_log_event_retourne_false_si_db_indisponible(): void
     {
-        // En test, MongoDB n'est pas dispo donc db = null
+        
         $result = $this->service->logEvent('test_event', ['foo' => 'bar']);
         $this->assertFalse($result);
     }

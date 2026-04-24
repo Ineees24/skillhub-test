@@ -22,7 +22,7 @@ class SpringAuthenticate
             return response()->json(['error' => 'Token absent'], 401);
         }
 
-        // Keep legacy JWT-based feature tests working in CI without requiring auth-service.
+       
         if (app()->environment('testing')) {
             $jwtUser = auth('api')->setToken($token)->user();
             if ($jwtUser) {
@@ -44,7 +44,7 @@ class SpringAuthenticate
             return response()->json(['error' => 'Réponse auth-service invalide'], 500);
         }
 
-        // On mappe l'identité Spring -> User local Skillhub (source des ids utilisés par le métier).
+        
         $localUser = User::query()->where('email', $email)->first();
         if (!$localUser) {
             return response()->json(['error' => 'Utilisateur introuvable dans skillhub'], 401);

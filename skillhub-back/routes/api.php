@@ -9,7 +9,7 @@ use App\Http\Controllers\AtelierController;
 Route::post('/login',    [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 
-// Catalogue & logs d'activité (équivalent skillhub : atelierControl/recup_liste_atelier, log_activity)
+
 Route::get('/ateliers', [AtelierController::class, 'liste']);
 Route::get('/ateliers/{id}', [AtelierController::class, 'detail']);
 Route::post('/activity-log', [AtelierController::class, 'logActivity']);

@@ -28,7 +28,7 @@ class AtelierTest extends TestCase
         return [$user, $token];
     }
 
-    // ── Liste des formations ──
+    // Liste des formations 
 
     public function test_liste_formations_sans_token()
     {
@@ -69,7 +69,7 @@ class AtelierTest extends TestCase
              ->assertStatus(200);
     }
 
-    // ── Détail d'une formation ──
+    //  Détail d'une formation 
 
     public function test_detail_formation_existante()
     {
@@ -87,7 +87,7 @@ class AtelierTest extends TestCase
              ->assertJson(['message' => 'Formation introuvable']);
     }
 
-    // ── Inscription ──
+    // Inscription
 
     public function test_apprenant_peut_sinscrire()
     {
@@ -118,7 +118,7 @@ class AtelierTest extends TestCase
              ->assertStatus(401);
     }
 
-    // ── Désinscription ──
+    //  Désinscription 
 
     public function test_desinscription_sans_inscription()
     {
@@ -131,7 +131,7 @@ class AtelierTest extends TestCase
     $this->assertContains($response->status(), [404, 500]);
     }
 
-    // ── Mes inscriptions ──
+    //  Mes inscriptions 
 
     public function test_apprenant_voit_ses_inscriptions()
     {
@@ -152,7 +152,7 @@ class AtelierTest extends TestCase
              ->assertStatus(403);
     }
 
-    // ── Log activité ──
+    //  Log activité 
 
     public function test_log_activite_valide()
     {
@@ -205,7 +205,7 @@ class AtelierTest extends TestCase
              'message' => 'Vous avez atteint la limite de 5 formations simultanées. Veuillez terminer ou vous désinscrire d\'une formation avant de vous inscrire à une nouvelle.',
          ]);
    }
-   // ── Filtre mine=1 ──
+   // Filtre mine=1 
 
     public function test_filtre_mine_avec_token()
     {
@@ -219,7 +219,7 @@ class AtelierTest extends TestCase
              ->assertJsonStructure(['liste_atelier', 'count']);
     }
 
-    // ── Désinscription ──
+    // Désinscription
 
     public function test_formateur_ne_peut_pas_se_desinscrire()
     {
@@ -258,7 +258,7 @@ class AtelierTest extends TestCase
              ->assertStatus(200);
     }
 
-    // ── Activity logs ──
+    // Activity logs
 
     public function test_activity_logs_apprenant()
     {
@@ -270,7 +270,7 @@ class AtelierTest extends TestCase
              ->assertJsonStructure(['logs', 'mongo_available']);
     }
 
-    // ── Inscription déjà existante ──
+    // Inscription déjà existante
 
     public function test_apprenant_deja_inscrit()
     {

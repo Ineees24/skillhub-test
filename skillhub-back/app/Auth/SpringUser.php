@@ -39,7 +39,7 @@ class SpringUser implements Authenticatable
 
     public function setRememberToken($value)
     {
-        // not supported
+        
     }
 
     public function getRememberTokenName()

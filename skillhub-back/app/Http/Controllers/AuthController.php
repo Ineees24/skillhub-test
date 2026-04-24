@@ -17,7 +17,7 @@ class AuthController extends Controller
     // POST /api/login
     public function login(Request $request)
     {
-        // Login SSO: le client calcule (nonce,timestamp,hmac) et on délègue à auth-service Spring.
+        // Login SSO: le client calcule (nonce,timestamp,hmac) ensuite on passe auth-service Spring.
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
             'nonce' => 'required|string|min:16|max:120',
@@ -77,13 +77,13 @@ class AuthController extends Controller
             ]);
         } catch (\Throwable $e) {
             $user->delete();
-            return response()->json(['error' => 'Auth-service unreachable'], 502);
+            return response()->json(['error' => 'Auth-service innaccessible'], 502);
         }
 
         if (!$authResp->successful()) {
-            // rollback local si auth-service refuse
+            
             $user->delete();
-            return response()->json(['error' => 'Auth-service register failed'], 502);
+            return response()->json(['error' => 'Auth-service register echoué'], 502);
         }
 
         return response()->json([

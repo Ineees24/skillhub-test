@@ -40,7 +40,7 @@ public class AuthService {
 
     public AuthDtos.UserView register(AuthDtos.RegisterRequest request) {
         userRepository.findByEmail(request.email()).ifPresent(u -> {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already exists.");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email existe deja.");
         });
 
         UserEntity user = new UserEntity();
@@ -59,7 +59,7 @@ public class AuthService {
         validateTimestamp(request.timestamp());
         nonceRepository.deleteByExpiresAtBefore(Instant.now());
         nonceRepository.findByUserIdAndNonce(user.getId(), request.nonce()).ifPresent(existing -> {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Nonce already used.");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Nonce deja utilisé.");
         });
 
         AuthNonceEntity nonce = new AuthNonceEntity();
@@ -97,7 +97,7 @@ public class AuthService {
 
     public AuthDtos.UserView me(String rawToken) {
         AuthTokenEntity token = resolveByToken(rawToken)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token invalid."));
         return toView(token.getUser());
     }
 
@@ -115,7 +115,7 @@ public class AuthService {
     private void validateTimestamp(Long timestamp) {
         long now = Instant.now().getEpochSecond();
         if (Math.abs(now - timestamp) > properties.timestampToleranceSeconds()) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Timestamp outside allowed window.");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Timestamp non autorisé.");
         }
     }
 

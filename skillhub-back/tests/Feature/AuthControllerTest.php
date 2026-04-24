@@ -30,7 +30,7 @@ class AuthControllerTest extends TestCase
         return new Response($psrResponse);
     }
 
-    // ─── LOGIN ───────────────────────────────────────────────
+    // LOGIN 
 
     public function test_login_validation_echoue_champs_manquants(): void
     {
@@ -87,7 +87,7 @@ class AuthControllerTest extends TestCase
           ->assertJsonStructure(['access_token', 'token_type', 'expires_at', 'user']);
     }
 
-    // ─── REGISTER ────────────────────────────────────────────
+    // REGISTER 
 
     public function test_register_validation_echoue_champs_manquants(): void
     {
@@ -186,7 +186,7 @@ class AuthControllerTest extends TestCase
         $this->assertDatabaseHas('users', ['email' => 'jean@test.com']);
     }
 
-    // ─── ME ──────────────────────────────────────────────────
+    // ME 
 
     public function test_me_sans_token_renvoie_401(): void
     {
@@ -203,7 +203,7 @@ class AuthControllerTest extends TestCase
              ->assertJsonFragment(['email' => $user->email]);
     }
 
-    // ─── LOGOUT ──────────────────────────────────────────────
+    //  LOGOUT 
 
     public function test_logout_avec_token(): void
     {

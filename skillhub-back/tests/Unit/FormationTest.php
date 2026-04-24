@@ -51,7 +51,7 @@ class FormationTest extends TestCase
         Formation::where('idUtilisateur', $user->id)->delete();
         $this->assertCount(0, Formation::where('idUtilisateur', $user->id)->get());
     } catch (\Illuminate\Database\QueryException $e) {
-        $this->assertTrue(true); // contrainte FK SQLite en test
+        $this->assertTrue(true); 
     }
     }
 }

@@ -10,15 +10,15 @@ class AuthServiceClient
 {
     private function client(): PendingRequest
     {
-        // Prefer the container env var at runtime (works even if config is cached).
-        // Fallback: in Docker, "auth-service" is reachable via the compose network.
+      
+
         $fallback = file_exists('/.dockerenv') ? 'http://auth-service:8081' : 'http://localhost:8081';
         $envUrl = getenv('AUTH_SERVICE_URL') ?: null;
         $cfgUrl = config('services.auth_service.url');
         $baseUrl = (string) ($envUrl ?: $cfgUrl ?: $fallback);
         $inDocker = file_exists('/.dockerenv');
 
-        // If running Laravel locally (no Docker), "auth-service" hostname is unreachable.
+        
         if (!$inDocker && str_contains($baseUrl, 'auth-service')) {
             $baseUrl = 'http://localhost:8081';
         }
