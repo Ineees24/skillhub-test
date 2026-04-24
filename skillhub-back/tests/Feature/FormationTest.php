@@ -131,4 +131,70 @@ class FormationTest extends TestCase
              ->assertStatus(200)
              ->assertJsonCount(4);
     }
+    public function test_formateur_voit_modules_de_sa_formation()
+    {
+        [$user, $token] = $this->actingAsFormateur();
+        $formation = Formation::factory()->create(['idUtilisateur' => $user->id]);
+
+        $this->withHeader('Authorization', "Bearer $token")
+             ->getJson("/api/formations/{$formation->id}/modules")
+             ->assertStatus(200);
+    }
+
+    public function test_formateur_ne_voit_pas_modules_dune_autre_formation()
+    {
+        [$user, $token] = $this->actingAsFormateur();
+        $autre = User::factory()->create(['role' => 'FORMATEUR']);
+        $formation = Formation::factory()->create(['idUtilisateur' => $autre->id]);
+
+        $this->withHeader('Authorization', "Bearer $token")
+             ->getJson("/api/formations/{$formation->id}/modules")
+             ->assertStatus(404);
+    }
+
+    public function test_formateur_peut_ajouter_module()
+    {
+        [$user, $token] = $this->actingAsFormateur();
+        $formation = Formation::factory()->create(['idUtilisateur' => $user->id]);
+
+        $this->withHeader('Authorization', "Bearer $token")
+             ->postJson("/api/formations/{$formation->id}/modules", [
+                 'titre' => 'Module 1',
+                 'duree' => 2,
+             ])
+             ->assertStatus(201)
+             ->assertJsonFragment(['titre' => 'Module 1']);
+    }
+
+    public function test_formateur_ne_peut_pas_ajouter_module_sans_titre()
+    {
+        [$user, $token] = $this->actingAsFormateur();
+        $formation = Formation::factory()->create(['idUtilisateur' => $user->id]);
+
+        $this->withHeader('Authorization', "Bearer $token")
+             ->postJson("/api/formations/{$formation->id}/modules", [])
+             ->assertStatus(422);
+    }
+
+    public function test_formateur_ne_peut_pas_ajouter_module_formation_autre()
+    {
+        [$user, $token] = $this->actingAsFormateur();
+        $autre = User::factory()->create(['role' => 'FORMATEUR']);
+        $formation = Formation::factory()->create(['idUtilisateur' => $autre->id]);
+
+        $this->withHeader('Authorization', "Bearer $token")
+             ->postJson("/api/formations/{$formation->id}/modules", [
+                 'titre' => 'Hack',
+             ])
+             ->assertStatus(404);
+    }
+
+    public function test_creation_formation_validation_echoue()
+    {
+        [$user, $token] = $this->actingAsFormateur();
+
+        $this->withHeader('Authorization', "Bearer $token")
+             ->postJson('/api/formations', [])
+             ->assertStatus(422);
+    }
 }

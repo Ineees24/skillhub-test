@@ -291,4 +291,69 @@ class AtelierTest extends TestCase
              ->assertStatus(200)
              ->assertJsonFragment(['message' => 'Vous etes deja inscrit a cette formation.']);
     }
+    public function test_inscription_formation_inexistante(): void
+    {
+        [$user, $token] = $this->actingAsApprenant();
+
+        $this->withHeader('Authorization', "Bearer $token")
+             ->postJson('/api/ateliers/99999/inscription')
+             ->assertStatus(404);
+    }
+
+    public function test_mes_inscriptions_avec_inscription_terminee(): void
+    {
+        [$user, $token] = $this->actingAsApprenant();
+        $formation = Formation::factory()->create();
+
+        DB::table('inscription')->insert([
+            'idUtilisateur'   => $user->id,
+            'idFormation'     => $formation->id,
+            'dateInscription' => now()->toDateString(),
+            'statut'          => 'termine',
+            'created_at'      => now(),
+            'updated_at'      => now(),
+        ]);
+
+        $this->withHeader('Authorization', "Bearer $token")
+             ->getJson('/api/mes-inscriptions')
+             ->assertStatus(200)
+             ->assertJsonStructure(['inscriptions']);
+    }
+
+    public function test_filtre_mine_sans_token(): void
+    {
+        Formation::factory()->create();
+
+        $this->getJson('/api/ateliers?mine=1')
+             ->assertStatus(200)
+             ->assertJsonStructure(['liste_atelier', 'count']);
+    }
+
+    public function test_activity_logs_avec_limit(): void
+    {
+        [$user, $token] = $this->actingAsApprenant();
+
+        $this->withHeader('Authorization', "Bearer $token")
+             ->getJson('/api/activity-logs?limit=5')
+             ->assertStatus(200)
+             ->assertJsonStructure(['logs', 'mongo_available']);
+    }
+
+    public function test_detail_formation_avec_token(): void
+    {
+        [$user, $token] = $this->actingAsApprenant();
+        $formation = Formation::factory()->create();
+
+        $this->withHeader('Authorization', "Bearer $token")
+             ->getJson("/api/ateliers/{$formation->id}")
+             ->assertStatus(200);
+    }
+
+    public function test_inscription_sans_token_retourne_401(): void
+    {
+        $formation = Formation::factory()->create();
+
+        $this->postJson("/api/ateliers/{$formation->id}/inscription")
+             ->assertStatus(401);
+    }
 }
