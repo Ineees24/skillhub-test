@@ -204,5 +204,91 @@ class AtelierTest extends TestCase
          ->assertJsonFragment([
              'message' => 'Vous avez atteint la limite de 5 formations simultanées. Veuillez terminer ou vous désinscrire d\'une formation avant de vous inscrire à une nouvelle.',
          ]);
-}
+   }
+   // ── Filtre mine=1 ──
+
+    public function test_filtre_mine_avec_token()
+    {
+        [$user, $token] = $this->actingAsApprenant();
+        Formation::factory()->create(['idUtilisateur' => $user->id]);
+        Formation::factory()->create();
+
+        $this->withHeader('Authorization', "Bearer $token")
+             ->getJson('/api/ateliers?mine=1')
+             ->assertStatus(200)
+             ->assertJsonStructure(['liste_atelier', 'count']);
+    }
+
+    // ── Désinscription ──
+
+    public function test_formateur_ne_peut_pas_se_desinscrire()
+    {
+        [$user, $token] = $this->actingAsFormateur();
+        $formation = Formation::factory()->create();
+
+        $this->withHeader('Authorization', "Bearer $token")
+             ->deleteJson("/api/ateliers/{$formation->id}/inscription")
+             ->assertStatus(403);
+    }
+
+    public function test_desinscription_sans_token()
+    {
+        $formation = Formation::factory()->create();
+
+        $this->deleteJson("/api/ateliers/{$formation->id}/inscription")
+             ->assertStatus(401);
+    }
+
+    public function test_apprenant_peut_se_desinscrire()
+    {
+        [$user, $token] = $this->actingAsApprenant();
+        $formation = Formation::factory()->create();
+
+        DB::table('inscription')->insert([
+            'idUtilisateur'   => $user->id,
+            'idFormation'     => $formation->id,
+            'dateInscription' => now()->toDateString(),
+            'statut'          => 'en-cours',
+            'created_at'      => now(),
+            'updated_at'      => now(),
+        ]);
+
+        $this->withHeader('Authorization', "Bearer $token")
+             ->deleteJson("/api/ateliers/{$formation->id}/inscription")
+             ->assertStatus(200);
+    }
+
+    // ── Activity logs ──
+
+    public function test_activity_logs_apprenant()
+    {
+        [$user, $token] = $this->actingAsApprenant();
+
+        $this->withHeader('Authorization', "Bearer $token")
+             ->getJson('/api/activity-logs')
+             ->assertStatus(200)
+             ->assertJsonStructure(['logs', 'mongo_available']);
+    }
+
+    // ── Inscription déjà existante ──
+
+    public function test_apprenant_deja_inscrit()
+    {
+        [$user, $token] = $this->actingAsApprenant();
+        $formation = Formation::factory()->create();
+
+        DB::table('inscription')->insert([
+            'idUtilisateur'   => $user->id,
+            'idFormation'     => $formation->id,
+            'dateInscription' => now()->toDateString(),
+            'statut'          => 'en-cours',
+            'created_at'      => now(),
+            'updated_at'      => now(),
+        ]);
+
+        $this->withHeader('Authorization', "Bearer $token")
+             ->postJson("/api/ateliers/{$formation->id}/inscription")
+             ->assertStatus(200)
+             ->assertJsonFragment(['message' => 'Vous etes deja inscrit a cette formation.']);
+    }
 }
