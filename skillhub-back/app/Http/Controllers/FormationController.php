@@ -194,4 +194,47 @@ class FormationController extends Controller
 
         return response()->json($module, 201);
     }
+    // GET /api/formations/{id}/apprenants
+public function apprenants($id)
+{
+    $user = auth('api')->user();
+
+    $formation = Formation::where('id', $id)
+        ->where('idUtilisateur', $user->id)
+        ->first();
+
+    if (!$formation) {
+        $exists = Formation::find($id);
+        if (!$exists) {
+            return response()->json(['message' => 'Formation introuvable.'], 404);
+        }
+        return response()->json(['message' => 'Accès non autorisé.'], 403);
+    }
+
+    $apprenants = \Illuminate\Support\Facades\DB::table('inscription as i')
+        ->join('users as u', 'u.id', '=', 'i.idUtilisateur')
+        ->where('i.idFormation', $formation->id)
+        ->select(
+            'u.id',
+            'u.nom',
+            'u.email',
+            'i.statut',
+            'i.dateInscription'
+        )
+        ->get()
+        ->map(function ($row) {
+            $statut = strtolower((string) ($row->statut ?? 'en-cours'));
+            $progression = $statut === 'termine' ? 100 : 35;
+            return [
+                'id'               => (int) $row->id,
+                'nom'              => (string) $row->nom,
+                'email'            => (string) $row->email,
+                'progression'      => $progression,
+                'date_inscription' => $row->dateInscription,
+            ];
+        })
+        ->values();
+
+    return response()->json(['apprenants' => $apprenants]);
+}
 }

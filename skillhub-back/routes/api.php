@@ -43,4 +43,5 @@ Route::middleware('spring.auth')->group(function () {
     Route::delete('/ateliers/{id}/inscription', [AtelierController::class, 'desinscrire']);
 
     Route::post('/formations/{id}/noter', [RatingController::class, 'noter']);
+    Route::get('/formations/{id}/apprenants', [FormationController::class, 'apprenants']);
 });
