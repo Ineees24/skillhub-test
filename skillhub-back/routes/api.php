@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\FormationController;
 use App\Http\Controllers\AtelierController;
+use App\Http\Controllers\RatingController;
 
 // Routes publiques
 Route::post('/login',    [AuthController::class, 'login']);
@@ -40,4 +41,6 @@ Route::middleware('spring.auth')->group(function () {
     // Inscription apprenant à une formation
     Route::post('/ateliers/{id}/inscription', [AtelierController::class, 'inscrire']);
     Route::delete('/ateliers/{id}/inscription', [AtelierController::class, 'desinscrire']);
+
+    Route::post('/formations/{id}/noter', [RatingController::class, 'noter']);
 });

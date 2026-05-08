@@ -17,12 +17,11 @@ class AuthController extends Controller
     // POST /api/login
     public function login(Request $request)
     {
-        // Login SSO: le client calcule (nonce,timestamp,hmac) ensuite on passe auth-service Spring.
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
-            'nonce' => 'required|string|min:16|max:120',
+            'email'     => 'required|email',
+            'nonce'     => 'required|string|min:16|max:120',
             'timestamp' => 'required|integer',
-            'hmac' => 'required|string|size:64',
+            'hmac'      => 'required|string|size:64',
         ]);
 
         if ($validator->fails()) {
@@ -40,9 +39,9 @@ class AuthController extends Controller
 
         return response()->json([
             'access_token' => $data['accessToken'] ?? null,
-            'token_type' => $data['tokenType'] ?? 'bearer',
-            'expires_at' => $data['expiresAt'] ?? null,
-            'user' => $user,
+            'token_type'   => $data['tokenType'] ?? 'bearer',
+            'expires_at'   => $data['expiresAt'] ?? null,
+            'user'         => $user,
         ]);
     }
 
@@ -52,7 +51,7 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'nom'      => 'required|string|max:100',
             'prenom'   => 'required|string|max:100',
-            'email'    => 'required|email|unique:users',
+            'email'    => 'required|email|unique:users,email',
             'password' => 'required|string|min:6',
             'role'     => 'required|in:APPRENANT,FORMATEUR,ADMINISTRATEUR',
         ]);
@@ -68,26 +67,25 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
             'role'     => $request->role,
         ]);
-        // On enregistre aussi dans auth-service (mot de passe chiffré Master Key).
+
         try {
             $authResp = $this->authServiceClient->register([
-                'email' => $request->email,
-                'role' => $request->role,
+                'email'    => $request->email,
+                'role'     => $request->role,
                 'password' => $request->password,
             ]);
         } catch (\Throwable $e) {
             $user->delete();
-            return response()->json(['error' => 'Auth-service innaccessible'], 502);
+            return response()->json(['error' => 'Auth-service unreachable'], 502);
         }
 
         if (!$authResp->successful()) {
-            
             $user->delete();
-            return response()->json(['error' => 'Auth-service register echoué'], 502);
+            return response()->json(['error' => 'Auth-service register failed'], 502);
         }
 
         return response()->json([
-            'user'         => $user,
+            'user' => $user,
         ], 201);
     }
 
